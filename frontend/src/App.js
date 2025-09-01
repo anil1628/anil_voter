@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 function App() {
@@ -6,6 +6,22 @@ function App() {
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [selectedFile, setSelectedFile] = useState("");
+
+  // Fetch uploaded files on mount and after upload/delete
+  useEffect(() => {
+    fetchUploadedFiles();
+  }, []);
+
+  const fetchUploadedFiles = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/uploads");
+      setUploadedFiles(res.data.files || []);
+    } catch (err) {
+      alert("❌ Could not fetch uploaded files");
+    }
+  };
 
   // Handle file selection
   const handleFileChange = (e) => {
@@ -26,6 +42,7 @@ function App() {
       await axios.post("http://localhost:5000/upload", formData);
       setMessage("✅ File uploaded successfully!");
       alert("✅ File uploaded successfully!");
+      fetchUploadedFiles(); // Refresh file list
     } catch (err) {
       setMessage("❌ Upload failed!");
       alert("❌ Upload failed!");
@@ -33,7 +50,6 @@ function App() {
   };
 
   // Search in DB
-// ...existing code...
   const handleSearch = async () => {
     try {
       const res = await axios.get(`http://localhost:5000/search?query=${searchQuery}`);
@@ -42,7 +58,23 @@ function App() {
       alert("❌ Error fetching results");
     }
   };
-// ...existing code...
+
+  // Delete selected file
+  const handleDeleteFile = async () => {
+    if (!selectedFile) {
+      alert("Please select a file to delete!");
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete "${selectedFile}"?`)) return;
+    try {
+      await axios.delete(`http://localhost:5000/uploads/${selectedFile}`);
+      alert("File deleted!");
+      setSelectedFile("");
+      fetchUploadedFiles(); // Refresh file list
+    } catch (err) {
+      alert("❌ Could not delete file");
+    }
+  };
 
   return (
     <div style={{ padding: "20px" }}>
@@ -52,6 +84,21 @@ function App() {
       <input type="file" accept=".csv" onChange={handleFileChange} />
       <button onClick={handleUpload}>Upload</button>
       <p>{message}</p>
+
+      <hr />
+
+      {/* Delete Uploaded File */}
+      <h3>Delete Uploaded File</h3>
+      <select
+        value={selectedFile}
+        onChange={e => setSelectedFile(e.target.value)}
+      >
+        <option value="">-- Select a file --</option>
+        {uploadedFiles.map(file => (
+          <option key={file} value={file}>{file}</option>
+        ))}
+      </select>
+      <button onClick={handleDeleteFile}>Delete</button>
 
       <hr />
 

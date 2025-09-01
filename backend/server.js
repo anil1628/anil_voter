@@ -2,8 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 const uploadCSV = require("./upload");
-const db = require("./db"); // Make sure you have db.js for MySQL connection
+const db = require("./db");
 
 const app = express();
 app.use(cors());
@@ -30,9 +31,9 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// --- ADD THIS: Search endpoint ---
-// ...existing code...
+// Search endpoint (with cache disabled)
 app.get("/search", async (req, res) => {
+  res.setHeader("Cache-Control", "no-store"); // Prevent browser caching
   const query = req.query.query;
   if (!query) {
     return res.status(400).json({ message: "Missing search query!" });
@@ -57,9 +58,29 @@ app.get("/search", async (req, res) => {
   }
 });
 
-// --- END ADD ---
+// List uploaded files
+app.get("/uploads", (req, res) => {
+  const uploadDir = path.join(__dirname, "uploads/");
+  fs.readdir(uploadDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ message: "Failed to read uploads folder", error: err.message });
+    }
+    res.json({ files });
+  });
+});
 
-// Start the server
+// Delete a specific uploaded file
+app.delete("/uploads/:filename", (req, res) => {
+  const uploadDir = path.join(__dirname, "uploads/");
+  const filePath = path.join(uploadDir, req.params.filename);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      return res.status(500).json({ message: "Failed to delete file", error: err.message });
+    }
+    res.json({ message: "File deleted!" });
+  });
+});
+
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
