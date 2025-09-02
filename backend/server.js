@@ -31,7 +31,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-// Search endpoint (with cache disabled)
+// 🔍 Improved Search endpoint
 app.get("/search", async (req, res) => {
   res.setHeader("Cache-Control", "no-store"); // Prevent browser caching
   const query = req.query.query;
@@ -43,14 +43,24 @@ app.get("/search", async (req, res) => {
     const [columns] = await db.query("SHOW COLUMNS FROM csv_data");
     const colList = columns
       .map(col => col.Field)
-      .filter(col => col !== "id")
-      .map(col => `\`${col}\``)
-      .join(", ");
-    // Search all columns
+      .filter(col => col !== "id");
+
+    if (colList.length === 0) {
+      return res.json({ results: [] });
+    }
+
+    // Build WHERE clause dynamically (case-insensitive search)
+    const whereClause = colList
+      .map(col => `LOWER(\`${col}\`) LIKE ?`)
+      .join(" OR ");
+
+    const values = colList.map(() => `%${query.toLowerCase()}%`);
+
     const [rows] = await db.query(
-      `SELECT * FROM csv_data WHERE CONCAT_WS(' ', ${colList}) LIKE ?`,
-      [`%${query}%`]
+      `SELECT * FROM csv_data WHERE ${whereClause}`,
+      values
     );
+
     res.json({ results: rows });
   } catch (err) {
     console.error("❌ Search failed:", err);

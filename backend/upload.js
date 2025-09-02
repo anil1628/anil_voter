@@ -16,8 +16,8 @@ function uploadCSV(filePath) {
           return reject("❌ CSV is empty");
         }
 
-        const tableName = "csv_data";
-        const uniqueCols = ["emailid"]; // Use 'emailid' as unique key
+        const tableName = "csv_data1";
+        const uniqueCols = ["voterid"]; // Use 'voterid' as unique key
 
         try {
           // 1. Ensure base table exists (only id column first time)
@@ -68,8 +68,8 @@ function uploadCSV(filePath) {
               normalizedRow[mappedKey] = row[key];
             });
 
-            // Skip if emailid is missing
-            if (!normalizedRow.emailid) continue;
+            // Skip if voterid is missing
+            if (!normalizedRow.voterid) continue;
 
             // Build WHERE clause for unique columns
             const uniqueValues = uniqueCols.map(col => normalizedRow[col]);

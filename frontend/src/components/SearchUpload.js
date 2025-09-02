@@ -2,12 +2,13 @@ import React, { useState } from "react";
 
 export default function SearchUpload() {
   const [file, setFile] = useState(null);
-  const [search, setSearch] = useState("");
 
+  // Handle file select
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
+  // Upload CSV file to backend
   const handleUpload = async () => {
     if (!file) return alert("⚠️ Please select a file!");
     const formData = new FormData();
@@ -30,40 +31,41 @@ export default function SearchUpload() {
     }
   };
 
-  const handleSubmit = () => {
-    alert(`Searching for: ${search}`);
-  };
-
   return (
-    <div style={{
-      padding: "20px",
-      maxWidth: "400px",
-      margin: "auto",
-      backgroundColor: "white",
-      borderRadius: "12px",
-      boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
-    }}>
-      <h2 style={{ marginBottom: "10px" }}>CSV Uploader</h2>
+    <div
+      style={{
+        padding: "20px",
+        maxWidth: "500px",
+        margin: "auto",
+        backgroundColor: "white",
+        borderRadius: "12px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        textAlign: "center",
+      }}
+    >
+      <h2 style={{ marginBottom: "15px" }}>CSV Uploader</h2>
+
+      {/* File upload */}
       <input
-        type="text"
-        placeholder="Search..."
-        style={{ padding: "8px", width: "100%", marginBottom: "10px" }}
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        type="file"
+        onChange={handleFileChange}
+        style={{ marginBottom: "15px" }}
       />
-      <input type="file" onChange={handleFileChange} style={{ marginBottom: "10px" }} />
+
+      {/* Upload button */}
       <div>
         <button
           onClick={handleUpload}
-          style={{ backgroundColor: "blue", color: "white", padding: "8px 16px", marginRight: "8px", border: "none", borderRadius: "6px" }}
+          style={{
+            backgroundColor: "blue",
+            color: "white",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
         >
           Upload
-        </button>
-        <button
-          onClick={handleSubmit}
-          style={{ backgroundColor: "green", color: "white", padding: "8px 16px", border: "none", borderRadius: "6px" }}
-        >
-          Submit
         </button>
       </div>
     </div>
